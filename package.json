@@ -1,0 +1,24 @@
+{
+  "name": "restaurant-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/scripts/seedDemoData.js",
+    "seed:auth": "node src/scripts/seedAuthUsers.js",
+    "build": "echo \"Nothing to build for backend\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.4.0",
+    "helmet": "^7.2.0",
+    "morgan": "^1.10.0",
+    "socket.io": "^4.8.1"
+  }
+}
+
