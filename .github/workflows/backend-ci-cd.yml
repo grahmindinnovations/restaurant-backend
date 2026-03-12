@@ -75,6 +75,7 @@ jobs:
               -e PORT="${{ secrets.PORT }}" \
               -e NODE_ENV="${{ secrets.NODE_ENV }}" \
               -e FRONTEND_ORIGIN="${{ secrets.FRONTEND_ORIGIN }}" \
-              -e FIREBASE_SERVICE_ACCOUNT_JSON="${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" \
+              -e GOOGLE_APPLICATION_CREDENTIALS="/secrets/service-account.json" \
+              -v "$HOME/restaurant-service-account.json:/secrets/service-account.json:ro" \
               grahmind/restaurant-backend:latest
 
