@@ -19,6 +19,10 @@ import { createKitchenRouter } from './routes/kitchen.js'
 
 const PORT = Number(process.env.PORT || 5180)
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173'
+const FRONTEND_ORIGINS = [
+  FRONTEND_ORIGIN,
+  'http://localhost:5173',
+].filter(Boolean)
 
 initFirebaseAdmin()
 
@@ -28,7 +32,7 @@ app.disable('x-powered-by')
 app.use(helmet())
 app.use(
   cors({
-    origin: FRONTEND_ORIGIN,
+    origin: FRONTEND_ORIGINS,
     credentials: true,
   })
 )
@@ -38,7 +42,7 @@ app.use(morgan('dev'))
 app.use('/api', healthRouter)
 
 const server = http.createServer(app)
-const io = createSocketServer(server, { corsOrigin: FRONTEND_ORIGIN })
+const io = createSocketServer(server, { corsOrigin: FRONTEND_ORIGINS })
 
 app.use('/api', createRolesRouter())
 app.use('/api', createMenuRouter({ io }))
