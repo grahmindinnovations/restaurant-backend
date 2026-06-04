@@ -8,15 +8,37 @@ export function createOrdersRouter({ io }) {
   const router = Router()
 
   router.get('/orders', requireAuth, async (req, res) => {
-    const db = getDb()
-    const status = req.query.status ? String(req.query.status) : null
+    try {
+      const db = getDb()
+      const status = req.query.status ? String(req.query.status) : null
 
-    let q = db.collection('orders').orderBy('createdAt', 'desc')
-    if (status) q = q.where('status', '==', status)
+      // Firestore requires a composite index for:
+      //   where('status','==',X) + orderBy('createdAt','desc')
+      // To keep local/dev friction low, avoid that composite index by doing:
+      // - filtered query without orderBy
+      // - sort in memory (safe enough for the current scale; add pagination later)
+      const snap = status
+        ? await db.collection('orders').where('status', '==', status).get()
+        : await db.collection('orders').orderBy('createdAt', 'desc').get()
 
-    const snap = await q.get()
-    const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    res.json({ orders })
+      const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+
+      if (status) {
+        const toMs = (v) => {
+          if (!v) return 0
+          if (typeof v?.toMillis === 'function') return v.toMillis()
+          if (typeof v?.toDate === 'function') return v.toDate().getTime()
+          const dt = v instanceof Date ? v : new Date(v)
+          return Number.isNaN(dt.getTime()) ? 0 : dt.getTime()
+        }
+        orders.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
+      }
+
+      res.json({ orders })
+    } catch (e) {
+      console.error('GET /orders failed:', e)
+      res.status(500).json({ error: 'Failed to load orders' })
+    }
   })
 
   router.post('/orders', requireAuth, async (req, res) => {
