@@ -85,10 +85,12 @@ async function main() {
 
   for (const item of menuItems) {
     const ref = db.collection('menu_items').doc()
+    const sellPrice = Number(item.price) || 0
     batch.set(ref, {
       name: item.name,
       category: item.category,
-      price: item.price,
+      price: sellPrice,
+      cost_price: Math.round(sellPrice * 0.4),
       destination: item.destination,
       image_url: item.image_url,
       is_active: true,

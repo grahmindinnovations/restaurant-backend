@@ -63,12 +63,25 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          timeout: 60s
+          command_timeout: 10m
+          script_stop: true
           script: |
+            set -euo pipefail
+            echo "==> Connected to $(hostname) as $(whoami)"
+            if [ ! -f "$HOME/restaurant-service-account.json" ]; then
+              echo "ERROR: Missing $HOME/restaurant-service-account.json on EC2."
+              echo "Upload your Firebase service account JSON to that path before deploy."
+              exit 1
+            fi
             sudo docker image prune -f
             sudo docker pull grahmind/restaurant-backend:latest
-            sudo docker stop restaurant-backend || true
-            sudo docker rm restaurant-backend || true
-            for c in $(sudo docker ps -q 2>/dev/null); do sudo docker port "$c" 2>/dev/null | grep -q 5180 && sudo docker stop "$c" || true; done
+            sudo docker stop restaurant-backend 2>/dev/null || true
+            sudo docker rm restaurant-backend 2>/dev/null || true
+            for c in $(sudo docker ps -q 2>/dev/null); do
+              sudo docker port "$c" 2>/dev/null | grep -q 5180 && sudo docker stop "$c" || true
+            done
             command -v pm2 >/dev/null 2>&1 && pm2 stop all 2>/dev/null || true
             sudo fuser -k 5180/tcp 2>/dev/null || true
             sudo docker run -d --name restaurant-backend --restart always -p 5180:5180 \
@@ -78,4 +91,7 @@ jobs:
               -e GOOGLE_APPLICATION_CREDENTIALS="/secrets/service-account.json" \
               -v "$HOME/restaurant-service-account.json:/secrets/service-account.json:ro" \
               grahmind/restaurant-backend:latest
+            sleep 2
+            sudo docker ps --filter name=restaurant-backend
+            sudo docker logs restaurant-backend --tail 30
 
