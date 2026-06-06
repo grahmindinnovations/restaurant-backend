@@ -3,6 +3,7 @@ import admin from 'firebase-admin'
 import { getDb } from '../../services/firebaseAdmin.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { emitMenuUpdate } from '../../utils/firestoreHelpers.js'
+import { getRestaurantSettings } from '../../utils/restaurantSettings.js'
 
 export function createInventoryRouter({ io } = {}) {
   const router = Router()
@@ -540,7 +541,11 @@ export function createInventoryRouter({ io } = {}) {
 
   router.get('/inventory/low-stock', requireAuth, safe(async (req, res) => {
     const db = getDb()
-    const threshold = Number(req.query.lowThreshold ?? 20)
+    let threshold = Number(req.query.lowThreshold)
+    if (!Number.isFinite(threshold) || threshold <= 0) {
+      const settings = await getRestaurantSettings(db)
+      threshold = settings.lowStockThreshold
+    }
     const snap = await db.collection('menu_items').get()
     const items = []
     snap.forEach((d) => {

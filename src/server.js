@@ -16,6 +16,32 @@ const io = createSocketServer(server, { corsOrigin: FRONTEND_ORIGINS })
 
 registerApiRoutes(app, { io })
 
-server.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`)
+server.on('error', (err) => {
+  if (err?.code === 'EADDRINUSE') {
+    console.error(
+      `Port ${PORT} is already in use. Stop the other backend (netstat -ano | findstr :${PORT}) and run npm run dev once.`,
+    )
+    process.exit(1)
+  }
+  throw err
 })
+
+const HOST = process.env.HOST || '127.0.0.1'
+
+server.listen(PORT, HOST, () => {
+  console.log(`Backend listening on http://${HOST}:${PORT}`)
+})
+
+let shuttingDown = false
+function gracefulShutdown(signal) {
+  if (shuttingDown) return
+  shuttingDown = true
+  console.log(`${signal} received — closing server…`)
+  server.close(() => {
+    process.exit(0)
+  })
+  setTimeout(() => process.exit(1), 5000).unref()
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))

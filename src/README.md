@@ -19,7 +19,7 @@ src/
 │   ├── reception/         ← orders, tables, reports, notifications, expenses*
 │   ├── kitchen/           ← kitchen config, finish order
 │   ├── manager/           ← inventory
-│   ├── employee/          ← staff HR APIs
+│   ├── employee/          ← staff HR APIsssss
 │   └── admin/             ← admin dashboard APIs
 ├── services/
 │   └── firebaseAdmin.js
@@ -51,7 +51,31 @@ Same as frontend: Firestore collection `roles`, document id = `reception` | `kit
 ## Dev
 
 ```bash
-npm run dev
+npm run dev          # stable — does not auto-restart (use for daily work)
+npm run dev:watch    # auto-restart on file save (backend coding only)
+npm run seed:auth    # demo users + roles.allowed_email
 ```
 
+Run **one** backend on port 5180. Frontend (`npm run dev` in `restaurant-frontend`) proxies `/api` → `127.0.0.1:5180`.
+
 Health: `GET http://localhost:5180/api/health`
+
+### Demo logins (after `seed:auth`)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@example.com | Admin@12345 |
+| Reception | reception@example.com | Reception@12345 |
+| Kitchen | kitchen@example.com | Kitchen@12345 |
+
+Assign your own email: `npm run assign-role -- you@email.com admin`
+
+Or use **Admin → Staff → App access** in the UI (creates Firebase login + `users` profile).
+
+### Staff vs app access
+
+| | Team directory (`staff` collection) | App access (`users` + Firebase Auth) |
+|--|--|--|
+| Purpose | HR: name, job title (Chef), phone, salary | Who can **sign in** and which module they open |
+| Example | Arjun — Chef | arjun@… — **kitchen** role → `/kitchen` |
+| Admin UI | Staff → Team directory / Add team member | Staff → **App access** |

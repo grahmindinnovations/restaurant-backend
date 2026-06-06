@@ -5,10 +5,12 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "dev": "node --watch src/server.js",
+    "dev": "node src/server.js",
+    "dev:watch": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed": "node src/scripts/seedDemoData.js",
     "seed:auth": "node src/scripts/seedAuthUsers.js",
+    "assign-role": "node src/scripts/assignRole.js",
     "build": "echo \"Nothing to build for backend\""
   },
   "dependencies": {

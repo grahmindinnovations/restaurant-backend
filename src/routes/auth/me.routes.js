@@ -22,7 +22,7 @@ export function createMeRouter() {
         return res.status(200).json(cached.payload)
       }
 
-      const allowedRoles = await getAllowedRolesForEmail(email)
+      const allowedRoles = await getAllowedRolesForEmail(email, uid)
 
       // Default role heuristic: prefer reception (POS) for single-station setups.
       const defaultRole =

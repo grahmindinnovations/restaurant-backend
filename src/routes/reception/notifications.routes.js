@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { getDb } from '../../services/firebaseAdmin.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { isRoleAllowed, requireAnyRole } from '../../middleware/roleAccess.js'
+import { getRestaurantSettings } from '../../utils/restaurantSettings.js'
 
 export function createNotificationsRouter() {
   const router = Router()
@@ -20,19 +21,21 @@ export function createNotificationsRouter() {
         return res.status(403).json({ error: 'Forbidden for this notification context' })
       }
 
-      const [kotSnap, billedSnap, menuSnap] = await Promise.all([
+      const [kotSnap, billedSnap, menuSnap, settings] = await Promise.all([
         db.collection('orders').where('status', '==', 'kot').get(),
         db.collection('orders').where('status', '==', 'billed').get(),
         db.collection('menu_items').get(),
+        getRestaurantSettings(db),
       ])
 
       const kotCount = kotSnap.size
       const billedCount = billedSnap.size
+      const lowStockThreshold = settings.lowStockThreshold
       let lowStockCount = 0
       menuSnap.forEach((d) => {
         const data = d.data() || {}
         const qty = Number(data.daily_quantity) || 0
-        if (qty > 0 && qty < 20) lowStockCount += 1
+        if (qty > 0 && qty < lowStockThreshold) lowStockCount += 1
       })
 
       const notifications = []

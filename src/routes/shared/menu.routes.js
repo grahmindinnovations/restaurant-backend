@@ -5,6 +5,7 @@ import { requireAuth } from '../../middleware/auth.js'
 import { EVENTS } from '../../realtime/events.js'
 import { readMenu } from '../../utils/firestoreHelpers.js'
 import { menuImageUpload, publicMenuImageUrl } from '../../utils/menuImageUpload.js'
+import { actorFromReq, writeActivityLog } from '../../utils/activityLog.js'
 
 export function createMenuRouter({ io }) {
   const router = Router()
@@ -61,6 +62,13 @@ export function createMenuRouter({ io }) {
 
     const ref = db.collection('menu_items').doc()
     await ref.set(payload)
+    await writeActivityLog(db, {
+      action: 'menu_item_created',
+      category: 'inventory',
+      actor: actorFromReq(req),
+      detail: `Added menu item: ${payload.name}`,
+      targetId: ref.id,
+    })
     io?.emit(EVENTS.MENU_UPDATE, await readMenu(db))
     res.json({ ok: true, id: ref.id })
   })
@@ -103,6 +111,14 @@ export function createMenuRouter({ io }) {
       { merge: true }
     )
 
+    await writeActivityLog(db, {
+      action: 'menu_item_updated',
+      category: 'inventory',
+      actor: actorFromReq(req),
+      detail: `Updated menu item ${id}: ${Object.keys(allowed).join(', ')}`,
+      targetId: id,
+    })
+
     res.json({ ok: true })
     io?.emit(EVENTS.MENU_UPDATE, await readMenu(db))
   })
@@ -138,6 +154,13 @@ export function createMenuRouter({ io }) {
     const db = getDb()
     const id = String(req.params.id)
     await db.collection('menu_items').doc(id).delete()
+    await writeActivityLog(db, {
+      action: 'menu_item_deleted',
+      category: 'inventory',
+      actor: actorFromReq(req),
+      detail: `Deleted menu item ${id}`,
+      targetId: id,
+    })
     res.json({ ok: true })
     io?.emit(EVENTS.MENU_UPDATE, await readMenu(db))
   })

@@ -42,4 +42,3 @@ export function getDb() {
   if (!app) initFirebaseAdmin()
   return admin.firestore()
 }
-
