@@ -160,13 +160,20 @@ export function createOrdersRouter({ io }) {
     const next = String(req.body?.status || '').trim()
     if (!next) return res.status(400).json({ error: 'Missing status' })
 
-    await db.collection('orders').doc(id).set(
-      {
-        status: next,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    )
+    const patch = {
+      status: next,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }
+    if (req.body?.guestLifecycle) patch.guestLifecycle = String(req.body.guestLifecycle)
+    if (req.body?.estimatedMinutes) {
+      const mins = Number(req.body.estimatedMinutes)
+      if (Number.isFinite(mins) && mins > 0) {
+        patch.estimatedMinutes = mins
+        patch.estimatedReadyAt = new Date(Date.now() + mins * 60 * 1000).toISOString()
+      }
+    }
+
+    await db.collection('orders').doc(id).set(patch, { merge: true })
     res.json({ ok: true })
     io?.emit(EVENTS.ORDERS_UPDATE, await readOrders(db))
   })

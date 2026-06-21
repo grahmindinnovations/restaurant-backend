@@ -14,11 +14,13 @@ import { createKitchenRouter } from './kitchen/index.js'
 import { createInventoryRouter } from './manager/index.js'
 import { createStaffRouter } from './employee/index.js'
 import { createAdminRouter } from './admin/index.js'
+import { createGuestRouter } from './guest/guest.routes.js'
 
 export function registerApiRoutes(app, { io }) {
   // Shared
   app.use('/api', healthRouter)
   app.use('/api', createMenuRouter({ io }))
+  app.use('/api', createGuestRouter({ io }))
 
   // Auth (any logged-in user)
   app.use('/api', createRolesRouter())
