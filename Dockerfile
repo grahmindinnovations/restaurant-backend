@@ -8,6 +8,7 @@ RUN npm ci --only=production
 COPY src ./src
 
 ENV PORT=5180
+ENV HOST=0.0.0.0
 ENV NODE_ENV=production
 EXPOSE 5180
 

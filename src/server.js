@@ -26,7 +26,9 @@ server.on('error', (err) => {
   throw err
 })
 
-const HOST = process.env.HOST || '127.0.0.1'
+// In Docker/production nginx reaches the container via published ports — must bind 0.0.0.0, not loopback only.
+const HOST =
+  process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1')
 
 server.listen(PORT, HOST, () => {
   console.log(`Backend listening on http://${HOST}:${PORT}`)

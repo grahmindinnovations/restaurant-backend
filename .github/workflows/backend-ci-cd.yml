@@ -86,6 +86,7 @@ jobs:
             sudo fuser -k 5180/tcp 2>/dev/null || true
             sudo docker run -d --name restaurant-backend --restart always -p 5180:5180 \
               -e PORT="${{ secrets.PORT }}" \
+              -e HOST=0.0.0.0 \
               -e NODE_ENV="${{ secrets.NODE_ENV }}" \
               -e FRONTEND_ORIGIN="${{ secrets.FRONTEND_ORIGIN }}" \
               -e GOOGLE_APPLICATION_CREDENTIALS="/secrets/service-account.json" \
